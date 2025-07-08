@@ -3,6 +3,8 @@ import nltk
 nltk.download('wordnet')
 from textblob import TextBlob
 
+st.cache_data
+
 # Emotion-based song recommendations with MP3 preview URLs
 music_recommendations = {
     "happy": [
