@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as s
 from textblob import TextBlob
 import nltk
 nltk.download('wordnet')
