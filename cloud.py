@@ -1,53 +1,57 @@
-# text_emotion_music_app.py
-
 import streamlit as st
-import numpy as np
-import tensorflow as tf
-import pickle
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from textblob import TextBlob
 
-# Load CNN text-based emotion model
-model = tf.keras.models.load_model("text_cnn_emotion_model.keras")
-
-# Load tokenizer
-with open("tokenizer.pkl", "rb") as f:
-    tokenizer = pickle.load(f)
-
-# Emotion labels (must match model training order)
-emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
-
-# Emotion to music mapping (YouTube links or song titles)
-emotion_to_music = {
-    'Angry': ["https://www.youtube.com/watch?v=2vjPBrBU-TM"],
-    'Disgust': ["https://www.youtube.com/watch?v=K0ibBPhiaG0"],
-    'Fear': ["https://www.youtube.com/watch?v=wXhTHyIgQ_U"],
-    'Happy': ["https://www.youtube.com/watch?v=ZbZSe6N_BXs"],
-    'Sad': ["https://www.youtube.com/watch?v=J_ub7Etch2U"],
-    'Surprise': ["https://www.youtube.com/watch?v=YqeW9_5kURI"],
-    'Neutral': ["https://www.youtube.com/watch?v=V1Pl8CzNzCw"]
+# Emotion-based song recommendations with MP3 preview URLs
+music_recommendations = {
+    "happy": [
+        {"title": "Happy - Pharrell Williams", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+        {"title": "Can't Stop the Feeling - Justin Timberlake", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+    ],
+    "sad": [
+        {"title": "Someone Like You - Adele", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+        {"title": "Let Her Go - Passenger", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+    ],
+    "neutral": [
+        {"title": "Let It Be - The Beatles", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"},
+        {"title": "Clocks - Coldplay", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"},
+    ],
+    "angry": [
+        {"title": "Breaking the Habit - Linkin Park", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"},
+        {"title": "Stronger - Kanye West", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+    ],
 }
 
-# Function to preprocess user input text
-def preprocess_text(text, tokenizer, max_len=100):
-    seq = tokenizer.texts_to_sequences([text])
-    padded = pad_sequences(seq, maxlen=max_len, padding='post')
-    return padded
+def detect_emotion(text):
+    blob = TextBlob(text)
+    polarity = blob.sentiment.polarity
 
-st.title("💬 Emotion-Based Music Recommender (Text Chat)")
-st.write("Enter a message, and we'll suggest music based on your emotion!")
-
-user_input = st.text_area("Enter your message:")
-
-if st.button("Analyze Emotion & Recommend Music"):
-    if not user_input.strip():
-        st.warning("Please enter a valid message.")
+    if polarity > 0.4:
+        return "happy"
+    elif polarity < -0.4:
+        return "sad"
     else:
-        with st.spinner("Predicting emotion..."):
-            processed_text = preprocess_text(user_input, tokenizer)
-            predictions = model.predict(processed_text)
-            predicted_emotion = emotion_labels[np.argmax(predictions)]
+        return "neutral"
 
-        st.success(f"Detected Emotion: **{predicted_emotion}**")
-        st.subheader("🎧 Recommended Music:")
-        for song_url in emotion_to_music[predicted_emotion]:
-            st.markdown(f"[Listen here]({song_url})")
+# Streamlit UI
+st.set_page_config(page_title="Emotion-Based Music Recommender", layout="centered")
+
+st.title("🎵 Emotion-Based Music Recommender")
+st.markdown("Enter your mood or how you're feeling, and get music that fits!")
+
+user_input = st.text_area("How are you feeling today?", height=100)
+
+if st.button("Recommend Music"):
+    if user_input:
+        emotion = detect_emotion(user_input)
+        st.subheader(f"Detected Emotion: {emotion.capitalize()}")
+        st.markdown("### Recommended Songs 🎧")
+
+        songs = music_recommendations.get(emotion, [])
+        for song in songs:
+            st.markdown(f"**{song['title']}**")
+            st.audio(song['url'], format="audio/mp3")
+    else:
+        st.warning("Please describe your mood to get music recommendations.")
+
+st.markdown("---")
+st.caption("🎶 Built with Streamlit & love.")
