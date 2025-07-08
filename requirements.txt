@@ -1,5 +1,5 @@
 streamlit==1.45.0
 tensorflow==2.19.0
-NLTK==3.7
+NLTK==3.9
 textblob==0.19.0
 
