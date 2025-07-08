@@ -1,7 +1,7 @@
 import streamlit as s
-from textblob import TextBlob
 import nltk
 nltk.download('wordnet')
+from textblob import TextBlob
 
 # Emotion-based song recommendations with MP3 preview URLs
 music_recommendations = {
